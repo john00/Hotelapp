@@ -186,6 +186,8 @@ public class RakutenClient {
                 mOnCatchText = true;
             } else if (localName.equals("address2")) {
                 mOnCatchText = true;
+            } else if (localName.equals("hotelMinCharge")) {
+                mOnCatchText = true;
             }
         }
 
@@ -229,6 +231,9 @@ public class RakutenClient {
                 mOnCatchText = false;
             } else if (localName.equals("address2")) {
                 mHotelInfo.setAddress2(mText);
+                mOnCatchText = false;
+            } else if (localName.equals("hotelMinCharge")) {
+                mHotelInfo.setHotelMinCharge(mText);
                 mOnCatchText = false;
             }
         }

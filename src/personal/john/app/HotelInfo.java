@@ -27,6 +27,8 @@ public class HotelInfo {
     private String mAddress1 = null;
 
     private String mAddress2 = null;
+    
+    private String mHotelMinCharge = null;
 
     private float mDistance = -1;
 
@@ -137,6 +139,14 @@ public class HotelInfo {
 
     public String getAddress() {
         return mAddress1 + mAddress2;
+    }
+
+    public void setHotelMinCharge(String hotelMinCharge) {
+        mHotelMinCharge = hotelMinCharge;
+    }
+
+    public String getHotelMinCharge() {
+        return mHotelMinCharge;
     }
 
     public void setDistance(double mylat, double mylon, double destlat, double destlon) {
