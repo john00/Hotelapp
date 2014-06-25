@@ -12,6 +12,8 @@ public class MyComparator implements Comparator<HotelInfo> {
 
     public static final int MODE_DISTANCE = 2; // 距離でソート
 
+    public static final int MODE_MINCHARGE = 3; // 価格でソート
+
     private int sort;
 
     private int mode;
@@ -41,6 +43,9 @@ public class MyComparator implements Comparator<HotelInfo> {
                 return ((Comparable) lhs.getName()).compareTo((Comparable) rhs.getName()) * sort;
             case MODE_DISTANCE:
                 return ((Comparable) lhs.getDistance()).compareTo((Comparable) rhs.getDistance())
+                        * sort;
+            case MODE_MINCHARGE:
+                return ((Comparable) lhs.getHotelMinCharge()).compareTo((Comparable) rhs.getHotelMinCharge())
                         * sort;
             default:
                 return ((Comparable) lhs.getName()).compareTo((Comparable) rhs.getName()) * sort;

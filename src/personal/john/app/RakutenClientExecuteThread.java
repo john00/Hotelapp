@@ -8,7 +8,6 @@ import org.xml.sax.SAXException;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.res.Resources;
 import android.os.AsyncTask;
 
 public class RakutenClientExecuteThread extends AsyncTask<RakutenClient, Void, Void> {

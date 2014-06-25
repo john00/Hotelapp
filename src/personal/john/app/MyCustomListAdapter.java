@@ -12,7 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class MyCustomListAdapter extends ArrayAdapter<MyCustomListData> {
-    private LayoutInflater layoutInflater;
+    private static LayoutInflater layoutInflater;
 
     public MyCustomListAdapter(Context context, int viewResourceId, List<MyCustomListData> objects) {
         super(context, viewResourceId, objects);
@@ -42,10 +42,14 @@ public class MyCustomListAdapter extends ArrayAdapter<MyCustomListData> {
         // ホテル情報のセット
         TextView listInfoTextView = (TextView) cv.findViewById(R.id.listHotelInfo);
         listInfoTextView.setText(item.getHotelInfo());
-        
+
         // 現在地からホテルまでの距離
         TextView listDistanceTextView = (TextView) cv.findViewById(R.id.listHotelDistance);
         listDistanceTextView.setText(item.getHotelDistance());
+
+        // ホテルの再安値のセット
+        TextView listMinChargeTextView = (TextView) cv.findViewById(R.id.listHotelMinCharge);
+        listMinChargeTextView.setText(item.getHotelMinCharge());
         
         return cv;
     }

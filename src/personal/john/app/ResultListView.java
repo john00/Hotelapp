@@ -83,7 +83,7 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         final String[] itemslist = {
-                "ホテル名", "距離"
+                "ホテル名", "距離", "価格"
         };
 
         switch (item.getItemId()) {
@@ -91,6 +91,7 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
                 //　リストの並べ替え用ダイアログを表示し、選択に応じた並べ替えを行う。
                 // ホテル名：ホテル名で並び替え
                 // 距離：現在地からの距離で並び替え（近い順）
+                // 価格：ホテルの宿泊費で並び替え（安い順）
                 new AlertDialog.Builder(ResultListView.this)
                         .setTitle(ResultListView.this.getString(R.string.menulistitem_sort))
                         .setItems(itemslist, new DialogInterface.OnClickListener() {
@@ -105,6 +106,11 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
                                     case 1:
                                         Collections.sort(mTargetList, new MyComparator(
                                                 MyComparator.ASC, MyComparator.MODE_DISTANCE));
+                                        makeList();
+                                        break;
+                                    case 2:
+                                        Collections.sort(mTargetList, new MyComparator(
+                                                MyComparator.ASC, MyComparator.MODE_MINCHARGE));
                                         makeList();
                                         break;
                                     default:
@@ -159,8 +165,9 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
 
             tmpItem.setHotelName(mTargetList.get(iTargetCount).getName());
             tmpItem.setHotelInfo(mTargetList.get(iTargetCount).getSpecial());
-            tmpItem.setHotelDistance(Integer.toString(Math.round(mTargetList.get(iTargetCount)
+            tmpItem.setHotelDistance("ここから " + Integer.toString(Math.round(mTargetList.get(iTargetCount)
                     .getDistance())) + "m");
+            tmpItem.setHotelMinCharge("価格：" + mTargetList.get(iTargetCount).getHotelMinCharge() + "円 ～");
             object.add(tmpItem);
         }
 
