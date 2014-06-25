@@ -37,23 +37,25 @@ import android.widget.Toast;
 public class MainActivity extends FragmentActivity implements LocationListener,
         OnInfoWindowClickListener, LocationSource, RakutenClientReceiver {
 
-    private static GoogleMap mMap;
+    private GoogleMap mMap;
 
-    private static OnLocationChangedListener mListener;
+    private OnLocationChangedListener mListener;
 
     private static LocationManager mLocationManager;
 
     /* data */
-    private static ArrayList<HotelInfo> mTargetList;
+    ArrayList<HotelInfo> mTargetList = null;
 
-    private static RakutenClient mRakutenClient;
+    RakutenClient mRakutenClient = null;
+
+    static ArrayList<DirectionsData> mDirectionsList = null;
 
     // DB用オブジェクト
-    private static GeoSearcherDB mDatabaseObject;
+    private GeoSearcherDB mDatabaseObject;
 
     @Override
-    protected void onCreate(final Bundle sIS) {
-        super.onCreate(sIS);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         // ActionBar
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
@@ -62,23 +64,38 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        mMap = null;
-        
+
         if (mLocationManager != null) {
             if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 2.0f,
                         this);
-            } else if (mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            }
+            if (mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L,
                         2.0f, this);
             }
         } else {
             Toast.makeText(this, "GPSを有効に設定してください。", Toast.LENGTH_SHORT).show();
         }
-        
+
         setupMapIfNeeded();
 
+        // 初期位置を現在地に設定
+        String provider = "";
+        if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            provider = LocationManager.GPS_PROVIDER;
+        } else {
+            provider = LocationManager.NETWORK_PROVIDER;
+        }
 
+        Location loc = mLocationManager.getLastKnownLocation(provider);
+        if (loc != null) {
+            final CameraUpdate iniCamera = CameraUpdateFactory
+                    .newCameraPosition(new CameraPosition.Builder()
+                            .target(new LatLng(loc.getLatitude(), loc.getLongitude())).zoom(14.0f)
+                            .build());
+            mMap.moveCamera(iniCamera);
+        }
 
         /* Rakuten Client */
         try {
@@ -94,7 +111,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         // DB作成
         mDatabaseObject = new GeoSearcherDB(this);
 
-        mTargetList = null;
+        mDirectionsList = new ArrayList<DirectionsData>();
 
     }
 
@@ -102,37 +119,11 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     protected void onStart() {
         super.onStart();
         setupMapIfNeeded();
-        
-        if(mLocationManager != null ) {
+
+        if (mLocationManager != null) {
             mMap.setMyLocationEnabled(true);
         }
 
-        String provider = null;
-        if (mLocationManager != null) {
-            if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 2.0f,
-                        this);
-                provider = LocationManager.GPS_PROVIDER;
-            } else if (mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L,
-                        2.0f, this);
-                provider = LocationManager.NETWORK_PROVIDER;
-            }
-        }
-        
-        // 初期位置を現在地に設定
-        if (provider != null) {
-            Location loc = mLocationManager.getLastKnownLocation(provider);
-            if (loc != null) {
-                final CameraUpdate iniCamera = CameraUpdateFactory
-                        .newCameraPosition(new CameraPosition.Builder()
-                                .target(new LatLng(loc.getLatitude(), loc.getLongitude())).zoom(14.0f)
-                                .build());
-                mMap.moveCamera(iniCamera);
-            }
-        } else {
-            Toast.makeText(this, "GPSを有効に設定してください。", Toast.LENGTH_SHORT).show();
-        }
     }
 
     @Override
@@ -153,9 +144,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     @Override
     protected void onStop() {
-        if (mLocationManager != null ) {
-            mLocationManager.removeUpdates(this);
-        }
         super.onStop();
     }
 
@@ -163,12 +151,10 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         if (mMap == null) {
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
-            if (mMap != null) {
-                mMap.setMyLocationEnabled(true);
-            }
-
-            mMap.setLocationSource(this);
+            mMap.setMyLocationEnabled(true);
         }
+
+        mMap.setLocationSource(this);
     }
 
     @Override
@@ -224,7 +210,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
                                     default:
                                         mRakutenClient.setSearchRange(1);
                                 }
-
+                                
                                 searchHotel();
                             }
                         }).setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
@@ -245,13 +231,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     public void onLocationChanged(Location location) {
         if (mListener != null) {
             mListener.onLocationChanged(location);
-            
-            // 初期位置を現在地に設定
-            final CameraUpdate iniCamera = CameraUpdateFactory
-                    .newCameraPosition(new CameraPosition.Builder()
-                            .target(new LatLng(location.getLatitude(), location.getLongitude())).zoom(14.0f)
-                            .build());
-            mMap.moveCamera(iniCamera);
         }
     }
 
@@ -319,10 +298,11 @@ public class MainActivity extends FragmentActivity implements LocationListener,
                 mDatabaseObject.closeGeoSearcherDB();
             }
 
-            if (iArrived != 1)
+            if (iArrived != 1) {
                 icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
-            else
+            } else {
                 icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
+            }
 
             LatLng latlng = new LatLng(mTargetList.get(iHotel).getLocation().getLatitude(),
                     mTargetList.get(iHotel).getLocation().getLongitude());
@@ -394,8 +374,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
                         startActivity(intentToSettingWindow);
                         break;
                     case 3: // 楽天Webページを開く
-                        final Intent intentWeb = new Intent(Intent.ACTION_VIEW, Uri
-                                .parse(mTargetList.get(iTargetListIndex).getInfomationUrl()));
+                        Intent intentWeb = new Intent(Intent.ACTION_VIEW, Uri.parse(mTargetList
+                                .get(iTargetListIndex).getInfomationUrl()));
                         startActivity(intentWeb);
                     default:
                 }
@@ -406,7 +386,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         dialog.show();
 
     }
-
+    
     public void searchHotel() {
         mMap.clear();
         // 現在地周辺のホテルを検索する。
