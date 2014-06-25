@@ -5,13 +5,15 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 
 public class MyCustomListData {
-    private Bitmap mHotelImg;
+    private Bitmap mHotelImg = null;
 
-    private String mHotelName;
+    private String mHotelName = null;
 
-    private String mHotelInfo;
+    private String mHotelInfo = null;
 
-    private String mHotelDistance;
+    private String mHotelDistance = null;
+    
+    private String mHotelMinCharge = null;
 
     public void setHotelImage(Bitmap result) {
         mHotelImg = result;
@@ -44,5 +46,14 @@ public class MyCustomListData {
     public String getHotelDistance() {
         return mHotelDistance;
     }
+
+    public void setHotelMinCharge(String hotelMinCharge) {
+        mHotelMinCharge = hotelMinCharge;
+    }
+    
+    public String getHotelMinCharge() {
+        return mHotelMinCharge;
+    }
+
 
 }
