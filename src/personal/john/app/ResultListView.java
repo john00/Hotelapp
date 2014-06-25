@@ -153,6 +153,18 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
 
     // リスト項目生成メソッド
     public void makeList() {
+        if (mTargetList.size() <= 0) {
+            new AlertDialog.Builder(this).setTitle("検索結果なし")
+            .setMessage("近場にホテルがありません。検索範囲を広げるか、移動して再度検索を行ってください。")
+            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.cancel();
+                }
+            }).show();
+            
+            finish();
+        }
+        
         List<MyCustomListData> object = new ArrayList<MyCustomListData>();
 
         for (int iTargetCount = 0; iTargetCount < mTargetList.size(); iTargetCount++) {
