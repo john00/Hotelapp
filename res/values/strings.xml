@@ -18,5 +18,17 @@
     <string name="name_resultlistview">personal.john.app.ResultListView</string>
     <string name="menulistitem_sort">並び替え</string>
     <string name="menuitem_map">地図</string>
+    <string name="menuitem_streetview">ストリートビュー</string>
+    <string name="title_searchranges">検索範囲を選択してください</string>
+    <string name="message_gps">GPSを有効に設定してください。</string>
+    <string name="bt_cancel">キャンセル</string>
+    <string name="menuitem_reservedwithphone">電話で予約</string>
+    <string name="menuitem_showroute">ルート表示</string>
+    <string name="menuitem_memo">メモ</string>
+    <string name="menuitem_rakutenpage">楽天Webページを開く</string>
+    <string name="menuitem_close">閉じる</string>
+    
+    <string name="flag_mode_normal">Normal</string>
+    <string name="flag_mode_vacant">Vacant</string>
 
 </resources>

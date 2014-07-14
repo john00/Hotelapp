@@ -61,7 +61,7 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
 
             mRakutenClient.setmMyLatitute(myLocation[0]);
             mRakutenClient.setmMyLongitude(myLocation[1]);
-            mRakutenClient.queryInfo();
+            mRakutenClient.queryInfo(getString(R.string.flag_mode_normal), "");
 
         }
 

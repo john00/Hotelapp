@@ -29,6 +29,8 @@ public class HotelInfo {
     private String mAddress2 = null;
     
     private String mHotelMinCharge = null;
+    
+    private boolean mVacant = false;
 
     private float mDistance = -1;
 
@@ -147,6 +149,14 @@ public class HotelInfo {
 
     public String getHotelMinCharge() {
         return mHotelMinCharge;
+    }
+
+    public void setVacant(Boolean vacant) {
+        mVacant = vacant;
+    }
+
+    public boolean getVacant() {
+        return mVacant;
     }
 
     public void setDistance(double mylat, double mylon, double destlat, double destlon) {

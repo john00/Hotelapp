@@ -63,7 +63,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         mMap = null;
-        
+
         if (mLocationManager != null) {
             if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 2.0f,
@@ -73,12 +73,10 @@ public class MainActivity extends FragmentActivity implements LocationListener,
                         2.0f, this);
             }
         } else {
-            Toast.makeText(this, "GPSを有効に設定してください。", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.message_gps), Toast.LENGTH_SHORT).show();
         }
-        
+
         setupMapIfNeeded();
-
-
 
         /* Rakuten Client */
         try {
@@ -102,8 +100,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     protected void onStart() {
         super.onStart();
         setupMapIfNeeded();
-        
-        if(mLocationManager != null ) {
+
+        if (mLocationManager != null) {
             mMap.setMyLocationEnabled(true);
         }
 
@@ -119,19 +117,19 @@ public class MainActivity extends FragmentActivity implements LocationListener,
                 provider = LocationManager.NETWORK_PROVIDER;
             }
         }
-        
+
         // 初期位置を現在地に設定
         if (provider != null) {
             Location loc = mLocationManager.getLastKnownLocation(provider);
             if (loc != null) {
                 final CameraUpdate iniCamera = CameraUpdateFactory
                         .newCameraPosition(new CameraPosition.Builder()
-                                .target(new LatLng(loc.getLatitude(), loc.getLongitude())).zoom(14.0f)
-                                .build());
+                                .target(new LatLng(loc.getLatitude(), loc.getLongitude()))
+                                .zoom(14.0f).build());
                 mMap.moveCamera(iniCamera);
             }
         } else {
-            Toast.makeText(this, "GPSを有効に設定してください。", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.message_gps), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -153,7 +151,7 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     @Override
     protected void onStop() {
-        if (mLocationManager != null ) {
+        if (mLocationManager != null) {
             mLocationManager.removeUpdates(this);
         }
         super.onStop();
@@ -199,9 +197,26 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
                 startActivity(intentToResultListView);
                 break;
+
+            case R.id.item_streetview:
+                // ストリートビュー表示
+                String strStreetUrl = "google.streetview:cbll=";
+                strStreetUrl += mMap.getMyLocation().getLatitude() + ","
+                        + mMap.getMyLocation().getLongitude();
+
+                Intent intentStreet = new Intent();
+                intentStreet.setAction(Intent.ACTION_VIEW);
+                intentStreet.setClassName("com.google.android.apps.maps",
+                        "com.google.android.maps.MapsActivity");
+                intentStreet.setData(Uri.parse(strStreetUrl));
+                startActivity(intentStreet);
+
+                break;
+
             case R.id.item_range:
                 // ホテルの検索範囲設定
-                new AlertDialog.Builder(MainActivity.this).setTitle("検索範囲を選択してください")
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle(getString(R.string.title_searchranges))
                         .setItems(itemslist, new DialogInterface.OnClickListener() {
 
                             public void onClick(final DialogInterface dialog, int which) {
@@ -227,11 +242,13 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
                                 searchHotel();
                             }
-                        }).setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                            public void onClick(final DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        }).show();
+                        })
+                        .setNegativeButton(getString(R.string.bt_cancel),
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(final DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                }).show();
                 break;
             case R.id.item_exit:
                 finish();
@@ -245,12 +262,12 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     public void onLocationChanged(Location location) {
         if (mListener != null) {
             mListener.onLocationChanged(location);
-            
+
             // 初期位置を現在地に設定
             final CameraUpdate iniCamera = CameraUpdateFactory
                     .newCameraPosition(new CameraPosition.Builder()
-                            .target(new LatLng(location.getLatitude(), location.getLongitude())).zoom(14.0f)
-                            .build());
+                            .target(new LatLng(location.getLatitude(), location.getLongitude()))
+                            .zoom(14.0f).build());
             mMap.moveCamera(iniCamera);
         }
     }
@@ -323,22 +340,26 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             double destLon = Double.valueOf(mTargetList.get(iHotel).getLongitude());
             mTargetList.get(iHotel).setDistance(mRakutenClient.getmMyLatitute(),
                     mRakutenClient.getmMyLongitude(), destLat, destLon);
-            
+
             if (iArrived == 1) {
                 icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
             } else {
                 if (mTargetList.get(iHotel).getDistance() > 1000) {
                     icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
                 } else {
-                    icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
+                    icon = BitmapDescriptorFactory
+                            .defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
                 }
             }
-            
+
             LatLng latlng = new LatLng(destLat, destLon);
             String title = mTargetList.get(iHotel).getName();
 
-            options.position(latlng).title(title).icon(icon)
-                    .snippet(mTargetList.get(iHotel).getAddress());
+            String vacant = "空き部屋なし";
+            if (mTargetList.get(iHotel).getVacant()) {
+                vacant = "空き部屋あり";
+            }
+            options.position(latlng).title(title).icon(icon).snippet(vacant);
             mMap.addMarker(options);
         }
         mMap.setOnInfoWindowClickListener(this);
@@ -355,7 +376,9 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
         final int iTargetListIndex = index;
         final CharSequence[] items = {
-                "電話で予約", "ルート表示", "メモ", "楽天Webページを開く", "閉じる"
+                getString(R.string.menuitem_reservedwithphone),
+                getString(R.string.menuitem_showroute), getString(R.string.menuitem_memo),
+                getString(R.string.menuitem_rakutenpage), getString(R.string.menuitem_close)
         };
 
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
@@ -421,7 +444,21 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         // 現在地周辺のホテルを検索する。
         mRakutenClient.setmMyLatitute(mMap.getMyLocation().getLatitude());
         mRakutenClient.setmMyLongitude(mMap.getMyLocation().getLongitude());
-        mRakutenClient.queryInfo();
+        mRakutenClient.queryInfo(getString(R.string.flag_mode_normal), "");
+    }
+
+    public void checkVacantHotel() {
+        if (mTargetList == null) {
+            return;
+        }
+
+        int size = mTargetList.size();
+        for (int iHotel = 0; iHotel < size; iHotel++) {
+            if (mTargetList.get(iHotel).getNo() != "") {
+                mRakutenClient.queryInfo(getString(R.string.flag_mode_vacant),
+                        mTargetList.get(iHotel).getNo());
+            }
+        }
     }
 
 }

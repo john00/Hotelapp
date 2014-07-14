@@ -13,6 +13,14 @@ import android.os.AsyncTask;
 public class RakutenClientExecuteThread extends AsyncTask<RakutenClient, Void, Void> {
     private Activity mActivity = null;
 
+    private static final String MODE_NORMAL = "Normal";
+    
+    private static final String MODE_VACANT = "Vacant";
+
+    private String mExecMode = MODE_NORMAL;
+    
+    private String mHotelId = "";
+
     RakutenClient mRc;
 
     public RakutenClientExecuteThread(Activity activity) {
@@ -37,7 +45,7 @@ public class RakutenClientExecuteThread extends AsyncTask<RakutenClient, Void, V
     @Override
     protected void onPostExecute(Void result) {
         // 周辺にホテルがない場合
-        if (0 == mRc.getRecordCount()) {
+        if (0 == mRc.getRecordCount() && mExecMode == MODE_NORMAL ) {
             new AlertDialog.Builder(mActivity).setTitle("検索結果なし")
                     .setMessage("近場にホテルがありません。検索範囲を広げるか、移動して再度検索を行ってください。")
                     .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
@@ -49,12 +57,21 @@ public class RakutenClientExecuteThread extends AsyncTask<RakutenClient, Void, V
 
         // マップ上のマーカーを更新(MainActivity)
         if (mActivity.getClass().getName().matches(mActivity.getString(R.string.name_mainactivity))) {
-            ((MainActivity) mActivity).updateMarker();
+            if (mExecMode == MODE_VACANT) {
+                ((MainActivity) mActivity).checkVacantHotel();
+            } else {
+                ((MainActivity) mActivity).updateMarker();
+            }
 
             // リスト内容作成(ResultListView)
         } else if (mActivity.getClass().getName()
                 .matches(mActivity.getString(R.string.name_resultlistview))) {
             ((ResultListView) mActivity).makeList();
         }
+    }
+    
+    public void setExecModeAndHotelID(String mode, String hotelId) {
+        mExecMode = mode;
+        mHotelId = hotelId;
     }
 }

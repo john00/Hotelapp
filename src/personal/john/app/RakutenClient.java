@@ -38,6 +38,17 @@ public class RakutenClient {
     private static final String DATUMTYPE = "&datumType=1";
 
     private static final String HITS = "&hits=30";
+    
+    private static final String VACANTHOTEL_URI = "https://app.rakuten.co.jp/services/api/Travel/VacantHotelSearch/20131024?";
+    
+    private static final String APP_ID = "&applicationId=939efa54bb0986afd2f2ca7cfc89ad41";
+    
+    private static final String FORMAT = "&format=xml";
+
+    private static final String ELEMENTS = "&elements=roomName";
+
+    private static final String HOTEL_ID = "&HotelNo=";
+    
 
     // private static String mAccessKey = null;
     private SAXParser mParser = null;
@@ -99,8 +110,16 @@ public class RakutenClient {
         mParser.parse(request, mHotelHandler);
     }
 
-    public void queryInfo() {
+    public void requestVacantHotel(String hotelId) throws SAXException,
+            IOException {
+        Log.v(LOG_TAG, "request Vacant Hotels.");
+        String request = new String(VACANTHOTEL_URI + APP_ID + FORMAT + HOTEL_ID + hotelId);
+        mParser.parse(request, mHotelHandler);
+    }
+    
+    public void queryInfo(String mode, String hotelId) {
         RakutenClientExecuteThread rcExeThread = new RakutenClientExecuteThread(mActivity);
+        rcExeThread.setExecModeAndHotelID(mode, hotelId);
         rcExeThread.execute(this);
     }
 
@@ -188,6 +207,8 @@ public class RakutenClient {
                 mOnCatchText = true;
             } else if (localName.equals("hotelMinCharge")) {
                 mOnCatchText = true;
+            } else if (localName.equals("roomName")) {
+                mOnCatchText = true;
             }
         }
 
@@ -234,6 +255,9 @@ public class RakutenClient {
                 mOnCatchText = false;
             } else if (localName.equals("hotelMinCharge")) {
                 mHotelInfo.setHotelMinCharge(mText);
+                mOnCatchText = false;
+            } else if (localName.equals("roomName")) {
+                mHotelInfo.setVacant(true);
                 mOnCatchText = false;
             }
         }
