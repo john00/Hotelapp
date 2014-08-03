@@ -52,6 +52,17 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
         } catch (SAXException e) {
             e.printStackTrace();
         }
+        
+        if (mRakutenClient == null) {
+            new AlertDialog.Builder(ResultListView.this)
+                .setTitle(ResultListView.this.getString(R.string.makelist_failed))
+                .setNegativeButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                        finish();
+                    }
+                }).show();
+        }
 
         mListView = (ListView) findViewById(R.id.listview);
 

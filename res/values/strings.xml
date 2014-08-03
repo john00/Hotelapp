@@ -27,6 +27,7 @@
     <string name="menuitem_memo">メモ</string>
     <string name="menuitem_rakutenpage">楽天Webページを開く</string>
     <string name="menuitem_close">閉じる</string>
+    <string name="makelist_failed">リスト作成に失敗しました。マップに戻ります。</string>
     
     <string name="flag_mode_normal">Normal</string>
     <string name="flag_mode_vacant">Vacant</string>
