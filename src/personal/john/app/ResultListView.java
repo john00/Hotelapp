@@ -47,6 +47,20 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
 
         try {
             mRakutenClient = new RakutenClient(this, this);
+            mListView = (ListView) findViewById(R.id.listview);
+
+            Intent intent = getIntent();
+            if (intent != null) {
+                double[] myLocation = intent.getDoubleArrayExtra("personal.john.app.list");
+
+                mRakutenClient.setmMyLatitute(myLocation[0]);
+                mRakutenClient.setmMyLongitude(myLocation[1]);
+                mRakutenClient.queryInfo(getString(R.string.flag_mode_normal), "");
+
+            }
+
+            // DB作成
+            mDatabaseObject = new GeoSearcherDB(this);
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         } catch (SAXException e) {
@@ -59,25 +73,11 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
                 .setNegativeButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
-                        finish();
                     }
                 }).show();
+            finish();
         }
 
-        mListView = (ListView) findViewById(R.id.listview);
-
-        Intent intent = getIntent();
-        if (intent != null) {
-            double[] myLocation = intent.getDoubleArrayExtra("personal.john.app.list");
-
-            mRakutenClient.setmMyLatitute(myLocation[0]);
-            mRakutenClient.setmMyLongitude(myLocation[1]);
-            mRakutenClient.queryInfo(getString(R.string.flag_mode_normal), "");
-
-        }
-
-        // DB作成
-        mDatabaseObject = new GeoSearcherDB(this);
     }
 
     @Override
