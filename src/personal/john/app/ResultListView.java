@@ -48,6 +48,8 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
         try {
             mRakutenClient = new RakutenClient(this, this);
             mListView = (ListView) findViewById(R.id.listview);
+            
+            mRakutenClient.setSearchRange(0.1);
 
             Intent intent = getIntent();
             if (intent != null) {
@@ -73,9 +75,9 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
                 .setNegativeButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
+                        finish();
                     }
                 }).show();
-            finish();
         }
 
     }
@@ -170,10 +172,10 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
             .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     dialog.cancel();
+                    finish();
                 }
             }).show();
             
-            finish();
         }
         
         List<MyCustomListData> object = new ArrayList<MyCustomListData>();
