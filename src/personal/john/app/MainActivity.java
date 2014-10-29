@@ -6,11 +6,9 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -23,7 +21,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -32,16 +29,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
 
-public class MainActivity extends FragmentActivity implements LocationListener,
-        OnInfoWindowClickListener, LocationSource, RakutenClientReceiver {
+public class MainActivity extends FragmentActivity implements OnInfoWindowClickListener,
+        RakutenClientReceiver {
 
     private static GoogleMap mMap;
 
-    private static OnLocationChangedListener mListener;
-
-    private static LocationManager mLocationManager;
+    private static MyLocationSource mLocationSource;
 
     /* data */
     private static ArrayList<HotelInfo> mTargetList;
@@ -60,23 +54,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         setContentView(R.layout.activity_main);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        mMap = null;
-
-        if (mLocationManager != null) {
-            if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 2.0f,
-                        this);
-            } else if (mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L,
-                        2.0f, this);
-            }
-        } else {
-            Toast.makeText(this, getString(R.string.message_gps), Toast.LENGTH_SHORT).show();
-        }
-
-        setupMapIfNeeded();
 
         /* Rakuten Client */
         try {
@@ -99,47 +76,12 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     @Override
     protected void onStart() {
         super.onStart();
-        setupMapIfNeeded();
-
-        if (mLocationManager != null) {
-            mMap.setMyLocationEnabled(true);
-        }
-
-        String provider = null;
-        if (mLocationManager != null) {
-            if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 2.0f,
-                        this);
-                provider = LocationManager.GPS_PROVIDER;
-            } else if (mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L,
-                        2.0f, this);
-                provider = LocationManager.NETWORK_PROVIDER;
-            }
-        }
-
-        // 初期位置を現在地に設定
-        if (provider != null) {
-            Location loc = mLocationManager.getLastKnownLocation(provider);
-            if (loc != null) {
-                final CameraUpdate iniCamera = CameraUpdateFactory
-                        .newCameraPosition(new CameraPosition.Builder()
-                                .target(new LatLng(loc.getLatitude(), loc.getLongitude()))
-                                .zoom(14.0f).build());
-                mMap.moveCamera(iniCamera);
-            }
-        } else {
-            Toast.makeText(this, getString(R.string.message_gps), Toast.LENGTH_SHORT).show();
-        }
-        
-        searchHotel();
-        
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        updateMarker();
+        onActivated();
     }
 
     @Override
@@ -149,15 +91,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
 
     @Override
     protected void onPause() {
+        onInactivated();
         super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        if (mLocationManager != null) {
-            mLocationManager.removeUpdates(this);
-        }
-        super.onStop();
     }
 
     private void setupMapIfNeeded() {
@@ -165,10 +100,43 @@ public class MainActivity extends FragmentActivity implements LocationListener,
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
             if (mMap != null) {
+                mLocationSource = new MyLocationSource(this, mMap);
+
+                // 初期値はとりあえず東京駅
+                double lat = 35.681283;
+                double lon = 139.766092;
+                LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+                Location loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if (loc == null) {
+                    loc = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+                }
+                if (loc != null) {
+                    lat = loc.getLatitude();
+                    lon = loc.getLongitude();
+                }
+                CameraPosition.Builder builder = new CameraPosition.Builder().bearing(0).tilt(0)
+                        .zoom(16).target(new LatLng(lat, lon));
+                mMap.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
+                mMap.getUiSettings().setCompassEnabled(true);
+                mMap.getUiSettings().setZoomControlsEnabled(true);
+                mMap.setLocationSource(mLocationSource);
                 mMap.setMyLocationEnabled(true);
             }
+        }
+    }
 
-            mMap.setLocationSource(this);
+    private void onActivated() {
+        setupMapIfNeeded();
+        if (mLocationSource != null) {
+            mLocationSource.start();
+            //searchHotel();
+            //updateMarker();
+        }
+    }
+
+    private void onInactivated() {
+        if (mLocationSource != null) {
+            mLocationSource.stop();
         }
     }
 
@@ -259,45 +227,6 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         }
 
         return true;
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        if (mListener != null) {
-            mListener.onLocationChanged(location);
-
-            // 初期位置を現在地に設定
-            final CameraUpdate iniCamera = CameraUpdateFactory
-                    .newCameraPosition(new CameraPosition.Builder()
-                            .target(new LatLng(location.getLatitude(), location.getLongitude()))
-                            .zoom(14.0f).build());
-            mMap.moveCamera(iniCamera);
-        }
-    }
-
-    @Override
-    public void onProviderDisabled(String arg0) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String arg0) {
-
-    }
-
-    @Override
-    public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-
-    }
-
-    @Override
-    public void activate(OnLocationChangedListener listener) {
-        mListener = listener;
-    }
-
-    @Override
-    public void deactivate() {
-        mListener = null;
     }
 
     @Override
@@ -445,8 +374,8 @@ public class MainActivity extends FragmentActivity implements LocationListener,
     public void searchHotel() {
         mMap.clear();
         // 現在地周辺のホテルを検索する。
-        mRakutenClient.setmMyLatitute(mMap.getMyLocation().getLatitude());
-        mRakutenClient.setmMyLongitude(mMap.getMyLocation().getLongitude());
+        mRakutenClient.setmMyLatitute(mLocationSource.getMyLocation().getLatitude());
+        mRakutenClient.setmMyLongitude(mLocationSource.getMyLocation().getLongitude());
         mRakutenClient.queryInfo(getString(R.string.flag_mode_normal), "");
     }
 
