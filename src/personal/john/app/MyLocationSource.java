@@ -137,6 +137,8 @@ public class MyLocationSource implements LocationSource, LocationListener, Conne
             
             mActivity.searchHotel();
             mActivity.updateMarker();
+            // TODO ここで落ちる　要調査
+            mActivity.makeList();
         }
     }
 

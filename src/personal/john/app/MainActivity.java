@@ -2,6 +2,8 @@
 package personal.john.app;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
@@ -27,13 +29,18 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ListView;
 
 public class MainActivity extends FragmentActivity implements OnInfoWindowClickListener,
         RakutenClientReceiver {
 
     private static GoogleMap mMap;
+
+    private static ListView mListView;
 
     private static MyLocationSource mLocationSource;
 
@@ -65,6 +72,8 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         } catch (Exception e1) {
             e1.printStackTrace();
         }
+        
+        mListView = (ListView) findViewById(R.id.main_listview);
 
         // DB作成
         mDatabaseObject = new GeoSearcherDB(this);
@@ -389,6 +398,112 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                         mTargetList.get(iHotel).getNo());
             }
         }
+    }
+
+    // リスト項目生成メソッド
+    public void makeList() {
+        if (mTargetList.size() <= 0) {
+            new AlertDialog.Builder(this).setTitle("検索結果なし")
+            .setMessage("近場にホテルがありません。検索範囲を広げるか、移動して再度検索を行ってください。")
+            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.cancel();
+                }
+            }).show();
+            
+        }
+        
+        List<MyCustomListData> object = new ArrayList<MyCustomListData>();
+
+        for (int iTargetCount = 0; iTargetCount < mTargetList.size(); iTargetCount++) {
+            final MyCustomListData tmpItem = new MyCustomListData();
+
+            double destLat = Double.valueOf(mTargetList.get(iTargetCount).getLatitude());
+            double destLon = Double.valueOf(mTargetList.get(iTargetCount).getLongitude());
+            mTargetList.get(iTargetCount).setDistance(mRakutenClient.getmMyLatitute(),
+                    mRakutenClient.getmMyLongitude(), destLat, destLon);
+
+            tmpItem.setHotelName(mTargetList.get(iTargetCount).getName());
+            tmpItem.setHotelInfo(mTargetList.get(iTargetCount).getSpecial());
+            tmpItem.setHotelDistance("ここから " + Integer.toString(Math.round(mTargetList.get(iTargetCount)
+                    .getDistance())) + "m");
+            tmpItem.setHotelMinCharge("価格：" + mTargetList.get(iTargetCount).getHotelMinCharge() + "円 ～");
+            object.add(tmpItem);
+        }
+
+        MyCustomListAdapter myCustomListAdapter = new MyCustomListAdapter(this, 0, object);
+        mListView.setAdapter(myCustomListAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+
+                final int iTargetListIndex = arg2;
+                final CharSequence[] items = {
+                        "電話で予約", "ルート表示", "メモ", "楽天Webページを開く", "閉じる"
+                };
+
+                AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+                dialog.setTitle(mTargetList.get(iTargetListIndex).getName());
+
+                dialog.setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0: // 電話
+                                String strTelphoneNo = "tel:"
+                                        + mTargetList.get(iTargetListIndex).getTelephoneNo();
+                                Intent intent = new Intent(Intent.ACTION_DIAL, Uri
+                                        .parse(strTelphoneNo));
+                                startActivity(intent);
+                                break;
+                            case 1: // ルート表示
+                                String url = "http://maps.google.com/maps?dirflg=w";
+                                url += "&saddr=" + mRakutenClient.getmMyLatitute() + ","
+                                        + mRakutenClient.getmMyLongitude() + "(現在地)";
+                                url += "&daddr=" + mTargetList.get(iTargetListIndex).getLatitude()
+                                        + "," + mTargetList.get(iTargetListIndex).getLongitude()
+                                        + "(目的地)";
+
+                                Intent intentRote = new Intent();
+                                intentRote.setAction(Intent.ACTION_VIEW);
+                                intentRote.setClassName("com.google.android.apps.maps",
+                                        "com.google.android.maps.MapsActivity");
+                                intentRote.setData(Uri.parse(url));
+                                startActivity(intentRote);
+                                break;
+                            case 2: // メモ
+                                String[] strInfo = {
+                                        mTargetList.get(iTargetListIndex).getNo(), "0", ""
+                                };
+                                String strHotelId = mTargetList.get(iTargetListIndex).getNo();
+                                mDatabaseObject.openGeoSearcherDB();
+                                if (mDatabaseObject.readArrivedData(strHotelId) != 0)
+                                    strInfo[1] = "1";
+                                strInfo[2] = mDatabaseObject.readMemoData(strHotelId);
+                                mDatabaseObject.closeGeoSearcherDB();
+                                Intent intentToSettingWindow = new Intent();
+                                intentToSettingWindow.setClassName("personal.john.app",
+                                        "personal.john.app.MemoWindow");
+                                intentToSettingWindow
+                                        .putExtra("personal.john.app.Arrived", strInfo);
+
+                                startActivity(intentToSettingWindow);
+                                break;
+                            case 3: // 楽天Webページを開く
+                                Intent intentWeb = new Intent(Intent.ACTION_VIEW,
+                                        Uri.parse(mTargetList.get(iTargetListIndex)
+                                                .getInfomationUrl()));
+                                startActivity(intentWeb);
+                            default:
+                        }
+                    }
+                });
+
+                dialog.show();
+            }
+        });
+
     }
 
 }
