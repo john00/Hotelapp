@@ -48,8 +48,6 @@ public class ResultListView extends Activity implements OnClickListener, Rakuten
         try {
             mRakutenClient = new RakutenClient(this, this);
             mListView = (ListView) findViewById(R.id.listview);
-            
-            mRakutenClient.setSearchRange(0.1);
 
             Intent intent = getIntent();
             if (intent != null) {

@@ -30,6 +30,8 @@ public class MyLocationSource implements LocationSource, LocationListener, Conne
     private LocationClient mLocClient = null;
     
     private static GoogleMap mMap;
+    
+    private static MainActivity mActivity;
 
     private boolean mReconnect = false;
 
@@ -59,9 +61,10 @@ public class MyLocationSource implements LocationSource, LocationListener, Conne
     };
 
     MyLocationSource(Activity activity, GoogleMap map) {
-        mLocClient = new LocationClient(activity, this, this);
-        mLocMgr = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE); // 位置マネージャ取得
+        mActivity = (MainActivity) activity;
         mMap = map;
+        mLocClient = new LocationClient(mActivity, this, this);
+        mLocMgr = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE); // 位置マネージャ取得
     }
 
     void start() {
@@ -131,6 +134,9 @@ public class MyLocationSource implements LocationSource, LocationListener, Conne
             if (mMap != null) {
                 mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(loc.getLatitude(), loc.getLongitude())));
             }
+            
+            mActivity.searchHotel();
+            mActivity.updateMarker();
         }
     }
 

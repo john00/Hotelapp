@@ -129,8 +129,6 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         setupMapIfNeeded();
         if (mLocationSource != null) {
             mLocationSource.start();
-            //searchHotel();
-            //updateMarker();
         }
     }
 
