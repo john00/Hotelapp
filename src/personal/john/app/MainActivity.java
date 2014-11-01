@@ -402,18 +402,19 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
 
     // リスト項目生成メソッド
     public void makeList() {
-        if (mTargetList.size() <= 0) {
-            new AlertDialog.Builder(this).setTitle("検索結果なし")
-            .setMessage("近場にホテルがありません。検索範囲を広げるか、移動して再度検索を行ってください。")
-            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    dialog.cancel();
-                }
-            }).show();
-            
-        }
-        
         List<MyCustomListData> object = new ArrayList<MyCustomListData>();
+        
+        if (mTargetList == null) {
+            final MyCustomListData tmpItem = new MyCustomListData();
+            tmpItem.setHotelName(getResources().getString(R.string.no_searche));
+            tmpItem.setHotelInfo(getResources().getString(R.string.no_searche_detail));
+            object.add(tmpItem);
+
+            MyCustomListAdapter myCustomListAdapter = new MyCustomListAdapter(this, 0, object);
+            mListView.setAdapter(myCustomListAdapter);
+            
+            return;
+        }
 
         for (int iTargetCount = 0; iTargetCount < mTargetList.size(); iTargetCount++) {
             final MyCustomListData tmpItem = new MyCustomListData();
