@@ -2,6 +2,7 @@
 package personal.john.app;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -155,25 +156,49 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        final String[] itemslist = {
-                "100m", "500m", "1000m", "2000m", "3000m"
-        };
 
         switch (item.getItemId()) {
             case R.id.item_search:
                 searchHotel();
                 break;
-            case R.id.item_list:
+            case R.id.listitem_sort:
                 // リスト表示用の画面を表示する。
-                double[] myLocation = {
-                        mMap.getMyLocation().getLatitude(), mMap.getMyLocation().getLongitude()
+                final String[] sortlist = {
+                        "ホテル名", "距離", "価格"
                 };
+                //　リストの並べ替え用ダイアログを表示し、選択に応じた並べ替えを行う。
+                // ホテル名：ホテル名で並び替え
+                // 距離：現在地からの距離で並び替え（近い順）
+                // 価格：ホテルの宿泊費で並び替え（安い順）
+                new AlertDialog.Builder(this)
+                        .setTitle(this.getString(R.string.menulistitem_sort))
+                        .setItems(sortlist, new DialogInterface.OnClickListener() {
 
-                Intent intentToResultListView = new Intent(MainActivity.this, ResultListView.class);
-                intentToResultListView.putExtra("personal.john.app.list", myLocation);
-                intentToResultListView.setAction(Intent.ACTION_VIEW);
-
-                startActivity(intentToResultListView);
+                            public void onClick(DialogInterface dialog, int which) {
+                                switch (which) {
+                                    case 0:
+                                        Collections.sort(mTargetList, new MyComparator(
+                                                MyComparator.ASC, MyComparator.MODE_HOTELNAME));
+                                        makeList();
+                                        break;
+                                    case 1:
+                                        Collections.sort(mTargetList, new MyComparator(
+                                                MyComparator.ASC, MyComparator.MODE_DISTANCE));
+                                        makeList();
+                                        break;
+                                    case 2:
+                                        Collections.sort(mTargetList, new MyComparator(
+                                                MyComparator.ASC, MyComparator.MODE_MINCHARGE));
+                                        makeList();
+                                        break;
+                                    default:
+                                }
+                            }
+                        }).setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        }).show();
                 break;
 
             case R.id.item_streetview:
@@ -193,9 +218,12 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
 
             case R.id.item_range:
                 // ホテルの検索範囲設定
+                final String[] distancelist = {
+                        "100m", "500m", "1000m", "2000m", "3000m"
+                };
                 new AlertDialog.Builder(MainActivity.this)
                         .setTitle(getString(R.string.title_searchranges))
-                        .setItems(itemslist, new DialogInterface.OnClickListener() {
+                        .setItems(distancelist, new DialogInterface.OnClickListener() {
 
                             public void onClick(final DialogInterface dialog, int which) {
                                 switch (which) {
