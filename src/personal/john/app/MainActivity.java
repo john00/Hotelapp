@@ -247,6 +247,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                                 }
 
                                 searchHotel();
+                                makeList();
                             }
                         })
                         .setNegativeButton(getString(R.string.bt_cancel),

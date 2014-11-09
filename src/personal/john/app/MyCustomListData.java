@@ -2,7 +2,6 @@
 package personal.john.app;
 
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 
 public class MyCustomListData {
     private Bitmap mHotelImg = null;

@@ -14,10 +14,8 @@ import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallback
 import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailedListener;
 import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.LocationSource;
-import com.google.android.gms.maps.model.LatLng;
 
 public class MyLocationSource implements LocationSource, LocationListener, ConnectionCallbacks,
         OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
@@ -29,13 +27,9 @@ public class MyLocationSource implements LocationSource, LocationListener, Conne
 
     private LocationClient mLocClient = null;
     
-    private static GoogleMap mMap;
-    
     private static MainActivity mActivity;
 
     private boolean mReconnect = false;
-
-    private long mLastLocMsec = 0l;
 
     private OnLocationChangedListener mSourceListener = null;
 
@@ -62,7 +56,6 @@ public class MyLocationSource implements LocationSource, LocationListener, Conne
 
     MyLocationSource(Activity activity, GoogleMap map) {
         mActivity = (MainActivity) activity;
-        mMap = map;
         mLocClient = new LocationClient(mActivity, this, this);
         mLocMgr = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE); // 位置マネージャ取得
     }
@@ -122,24 +115,12 @@ public class MyLocationSource implements LocationSource, LocationListener, Conne
 
     @Override
     public void onLocationChanged(Location loc) {
-        boolean gps = LocationManager.GPS_PROVIDER.equals(loc.getProvider());
-        long curMsec = System.currentTimeMillis();
-        // GPSプロバイダによるものか、一定時間以上経過したならMapのMyLocationを更新
-        if (gps || (curMsec - mLastLocMsec) >= (LOCATION_UPDATE_DURATION - 200)) {
-            mLastLocMsec = curMsec;
-            if (mSourceListener != null) {
-                // MyLocationを更新
-                mSourceListener.onLocationChanged(loc);
-            }
-            if (mMap != null) {
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(loc.getLatitude(), loc.getLongitude())));
-            }
-            
-            mActivity.searchHotel();
-            mActivity.updateMarker();
-            // TODO ここで落ちる　要調査
-            mActivity.makeList();
+        if (mSourceListener != null) {
+            mSourceListener.onLocationChanged(loc);
         }
+        
+        mActivity.searchHotel();
+        mActivity.makeList();
     }
 
     @Override

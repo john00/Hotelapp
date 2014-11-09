@@ -36,16 +36,12 @@ public class RakutenClient {
     private static final String SEARCHRADIUS = "&searchRadius=";
 
     private static final String DATUMTYPE = "&datumType=1";
-
-    private static final String HITS = "&hits=30";
     
     private static final String VACANTHOTEL_URI = "https://app.rakuten.co.jp/services/api/Travel/VacantHotelSearch/20131024?";
     
     private static final String APP_ID = "&applicationId=939efa54bb0986afd2f2ca7cfc89ad41";
     
     private static final String FORMAT = "&format=xml";
-
-    private static final String ELEMENTS = "&elements=roomName";
 
     private static final String HOTEL_ID = "&HotelNo=";
     
