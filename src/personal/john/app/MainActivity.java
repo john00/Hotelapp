@@ -164,12 +164,13 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
             case R.id.listitem_sort:
                 // リスト表示用の画面を表示する。
                 final String[] sortlist = {
-                        "ホテル名", "距離", "価格"
+                        "ホテル名", "距離", "価格", "空き部屋"
                 };
                 //　リストの並べ替え用ダイアログを表示し、選択に応じた並べ替えを行う。
                 // ホテル名：ホテル名で並び替え
                 // 距離：現在地からの距離で並び替え（近い順）
                 // 価格：ホテルの宿泊費で並び替え（安い順）
+                // 空き部屋：空き部屋があるホテルが先になるよう並び替え
                 new AlertDialog.Builder(this)
                         .setTitle(this.getString(R.string.menulistitem_sort))
                         .setItems(sortlist, new DialogInterface.OnClickListener() {
@@ -189,6 +190,11 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                                     case 2:
                                         Collections.sort(mTargetList, new MyComparator(
                                                 MyComparator.ASC, MyComparator.MODE_MINCHARGE));
+                                        makeList();
+                                        break;
+                                    case 3:
+                                        Collections.sort(mTargetList, new MyComparator(
+                                                MyComparator.ASC, MyComparator.MODE_VACANT));
                                         makeList();
                                         break;
                                     default:

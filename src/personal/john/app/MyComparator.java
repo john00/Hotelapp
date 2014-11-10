@@ -14,6 +14,8 @@ public class MyComparator implements Comparator<HotelInfo> {
 
     public static final int MODE_MINCHARGE = 3; // 価格でソート
 
+    public static final int MODE_VACANT = 4; // 空き部屋でソート
+
     private int sort;
 
     private int mode;
