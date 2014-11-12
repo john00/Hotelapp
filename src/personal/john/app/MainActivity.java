@@ -73,7 +73,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         } catch (Exception e1) {
             e1.printStackTrace();
         }
-        
+
         mListView = (ListView) findViewById(R.id.main_listview);
 
         // DB作成
@@ -166,13 +166,12 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                 final String[] sortlist = {
                         "ホテル名", "距離", "価格", "空き部屋"
                 };
-                //　リストの並べ替え用ダイアログを表示し、選択に応じた並べ替えを行う。
+                // リストの並べ替え用ダイアログを表示し、選択に応じた並べ替えを行う。
                 // ホテル名：ホテル名で並び替え
                 // 距離：現在地からの距離で並び替え（近い順）
                 // 価格：ホテルの宿泊費で並び替え（安い順）
                 // 空き部屋：空き部屋があるホテルが先になるよう並び替え
-                new AlertDialog.Builder(this)
-                        .setTitle(this.getString(R.string.menulistitem_sort))
+                new AlertDialog.Builder(this).setTitle(this.getString(R.string.menulistitem_sort))
                         .setItems(sortlist, new DialogInterface.OnClickListener() {
 
                             public void onClick(DialogInterface dialog, int which) {
@@ -438,7 +437,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
     // リスト項目生成メソッド
     public void makeList() {
         List<MyCustomListData> object = new ArrayList<MyCustomListData>();
-        
+
         if (mTargetList == null) {
             final MyCustomListData tmpItem = new MyCustomListData();
             tmpItem.setHotelName(getResources().getString(R.string.no_searche));
@@ -447,7 +446,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
 
             MyCustomListAdapter myCustomListAdapter = new MyCustomListAdapter(this, 0, object);
             mListView.setAdapter(myCustomListAdapter);
-            
+
             return;
         }
 
@@ -461,9 +460,11 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
 
             tmpItem.setHotelName(mTargetList.get(iTargetCount).getName());
             tmpItem.setHotelInfo(mTargetList.get(iTargetCount).getSpecial());
-            tmpItem.setHotelDistance("ここから " + Integer.toString(Math.round(mTargetList.get(iTargetCount)
-                    .getDistance())) + "m");
-            tmpItem.setHotelMinCharge("価格：" + mTargetList.get(iTargetCount).getHotelMinCharge() + "円 ～");
+            tmpItem.setHotelDistance("ここから "
+                    + Integer.toString(Math.round(mTargetList.get(iTargetCount).getDistance()))
+                    + "m");
+            tmpItem.setHotelMinCharge("価格：" + mTargetList.get(iTargetCount).getHotelMinCharge()
+                    + "円 ～");
             object.add(tmpItem);
         }
 
