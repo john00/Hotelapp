@@ -23,7 +23,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -122,11 +121,8 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                     loc = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
                 }
                 if (loc != null) {
-                    // TODO 以下はテスト用コード（リリース前に削除すること）
-                    //lat = loc.getLatitude();
-                    //lon = loc.getLongitude();
-                    lat = 35.681283;
-                    lon = 139.766092;
+                    lat = loc.getLatitude();
+                    lon = loc.getLongitude();
                 }
                 CameraPosition.Builder builder = new CameraPosition.Builder().bearing(0).tilt(0)
                         .zoom(16).target(new LatLng(lat, lon));
@@ -419,13 +415,8 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
     public void searchHotel() {
         mMap.clear();
         // 現在地周辺のホテルを検索する。
-        // TODO 以下はテスト用コード（リリース前に削除すること）
-        //mRakutenClient.setmMyLatitute(mLocationSource.getMyLocation().getLatitude());
-        //mRakutenClient.setmMyLongitude(mLocationSource.getMyLocation().getLongitude());
-        double lat = 35.681283;
-        double lon = 139.766092;
-        mRakutenClient.setmMyLatitute(lat);
-        mRakutenClient.setmMyLongitude(lon);
+        mRakutenClient.setmMyLatitute(mLocationSource.getMyLocation().getLatitude());
+        mRakutenClient.setmMyLongitude(mLocationSource.getMyLocation().getLongitude());
         mRakutenClient.queryInfo(getString(R.string.flag_mode_normal), "");
     }
 
@@ -474,20 +465,6 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                     + "m");
             tmpItem.setHotelMinCharge("価格：" + mTargetList.get(iTargetCount).getHotelMinCharge()
                     + "円 ～");
-            
-            switch (iTargetCount) {
-                case 0:
-                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(), R.drawable.marker_a));
-                    break;
-                case 1:
-                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(), R.drawable.marker_b));
-                    break;
-                case 2:
-                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(), R.drawable.marker_c));
-                    break;
-                default:
-                    break;
-            }
             object.add(tmpItem);
         }
 
