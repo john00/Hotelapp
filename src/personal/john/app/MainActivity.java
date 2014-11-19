@@ -303,13 +303,11 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         mMap.clear();
 
         for (int iHotel = 0; iHotel < size; iHotel++) {
-            int iArrived = 0;
             BitmapDescriptor icon;
             MarkerOptions options = new MarkerOptions();
 
             if (mTargetList.get(iHotel).getNo() != "") {
                 mDatabaseObject.openGeoSearcherDB();
-                iArrived = mDatabaseObject.readArrivedData(mTargetList.get(iHotel).getNo());
                 mDatabaseObject.closeGeoSearcherDB();
             }
 
@@ -318,16 +316,21 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
             mTargetList.get(iHotel).setDistance(mRakutenClient.getmMyLatitute(),
                     mRakutenClient.getmMyLongitude(), destLat, destLon);
 
-            if (iArrived == 1) {
-                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
-            } else {
-                if (mTargetList.get(iHotel).getDistance() > 1000) {
-                    icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
-                } else {
-                    icon = BitmapDescriptorFactory
-                            .defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
-                }
+            switch(iHotel) {
+                case 0:
+                    icon = BitmapDescriptorFactory.fromResource(R.drawable.marker_a);
+                    break;
+                case 1:
+                    icon = BitmapDescriptorFactory.fromResource(R.drawable.marker_b);
+                    break;
+                case 2:
+                    icon = BitmapDescriptorFactory.fromResource(R.drawable.marker_c);
+                    break;
+                default:
+                    icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+                    break;
             }
+            
 
             LatLng latlng = new LatLng(destLat, destLon);
             String title = mTargetList.get(iHotel).getName();
