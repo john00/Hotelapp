@@ -12,6 +12,7 @@ import org.xml.sax.SAXException;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -123,8 +124,8 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                 }
                 if (loc != null) {
                     // TODO 以下はテスト用コード（リリース前に削除すること）
-                    //lat = loc.getLatitude();
-                    //lon = loc.getLongitude();
+                    // lat = loc.getLatitude();
+                    // lon = loc.getLongitude();
                     lat = 35.681283;
                     lon = 139.766092;
                 }
@@ -316,7 +317,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
             mTargetList.get(iHotel).setDistance(mRakutenClient.getmMyLatitute(),
                     mRakutenClient.getmMyLongitude(), destLat, destLon);
 
-            switch(iHotel) {
+            switch (iHotel) {
                 case 0:
                     icon = BitmapDescriptorFactory.fromResource(R.drawable.marker_a);
                     break;
@@ -330,7 +331,6 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                     icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
                     break;
             }
-            
 
             LatLng latlng = new LatLng(destLat, destLon);
             String title = mTargetList.get(iHotel).getName();
@@ -343,6 +343,22 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
             mMap.addMarker(options);
         }
         mMap.setOnInfoWindowClickListener(this);
+        mMap.setOnMarkerClickListener(new OnMarkerClickListener() {
+
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                // TODO 自動生成されたメソッド・スタブ
+                for (int index = 0; index < mListView.getCount(); index++) {
+                    if (marker.getTitle().equals(
+                            ((MyCustomListAdapter) mListView.getAdapter()).getHotelName(index))) {
+                        ((MyCustomListAdapter) mListView.getAdapter()).setSelectedItemPosition(index);
+                        makeList();
+                        mListView.setSelection(index);
+                    }
+                }
+                return false;
+            }
+        });
     }
 
     @Override
@@ -423,8 +439,8 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         mMap.clear();
         // 現在地周辺のホテルを検索する。
         // TODO 以下はテスト用コード（リリース前に削除すること）
-        //mRakutenClient.setmMyLatitute(mLocationSource.getMyLocation().getLatitude());
-        //mRakutenClient.setmMyLongitude(mLocationSource.getMyLocation().getLongitude());
+        // mRakutenClient.setmMyLatitute(mLocationSource.getMyLocation().getLatitude());
+        // mRakutenClient.setmMyLongitude(mLocationSource.getMyLocation().getLongitude());
         double lat = 35.681283;
         double lon = 139.766092;
         mRakutenClient.setmMyLatitute(lat);
@@ -477,16 +493,19 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                     + "m");
             tmpItem.setHotelMinCharge("価格：" + mTargetList.get(iTargetCount).getHotelMinCharge()
                     + "円 ～");
-            
+
             switch (iTargetCount) {
                 case 0:
-                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(), R.drawable.marker_a));
+                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(),
+                            R.drawable.marker_a));
                     break;
                 case 1:
-                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(), R.drawable.marker_b));
+                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(),
+                            R.drawable.marker_b));
                     break;
                 case 2:
-                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(), R.drawable.marker_c));
+                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(),
+                            R.drawable.marker_c));
                     break;
                 default:
                     break;
