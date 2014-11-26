@@ -15,7 +15,7 @@ import android.widget.TextView;
 
 public class MyCustomListAdapter extends ArrayAdapter<MyCustomListData> {
     private static LayoutInflater layoutInflater;
-    private static int selectedPosition = 0;
+    private static int selectedPosition = -1;
     private static Context context;
 
     public MyCustomListAdapter(Context context, int viewResourceId, List<MyCustomListData> objects) {
