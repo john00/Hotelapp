@@ -42,6 +42,8 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         RakutenClientReceiver {
 
     private static GoogleMap mMap;
+    
+    private static ArrayList<Marker> mMarkerList;
 
     private static ListView mListView;
 
@@ -82,6 +84,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         mDatabaseObject = new GeoSearcherDB(this);
 
         mTargetList = null;
+        mMarkerList = new ArrayList<Marker>();
 
     }
 
@@ -184,25 +187,23 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                                     case 0:
                                         Collections.sort(mTargetList, new MyComparator(
                                                 MyComparator.ASC, MyComparator.MODE_HOTELNAME));
-                                        makeList();
                                         break;
                                     case 1:
                                         Collections.sort(mTargetList, new MyComparator(
                                                 MyComparator.ASC, MyComparator.MODE_DISTANCE));
-                                        makeList();
                                         break;
                                     case 2:
                                         Collections.sort(mTargetList, new MyComparator(
                                                 MyComparator.ASC, MyComparator.MODE_MINCHARGE));
-                                        makeList();
                                         break;
                                     case 3:
                                         Collections.sort(mTargetList, new MyComparator(
                                                 MyComparator.ASC, MyComparator.MODE_VACANT));
-                                        makeList();
                                         break;
                                     default:
                                 }
+                                makeList();
+                                updateMarker();
                             }
                         }).setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
@@ -302,6 +303,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
 
         int size = mTargetList.size();
         mMap.clear();
+        mMarkerList = new ArrayList<Marker>();
 
         for (int iHotel = 0; iHotel < size; iHotel++) {
             BitmapDescriptor icon;
@@ -340,7 +342,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                 vacant = "空き部屋あり";
             }
             options.position(latlng).title(title).icon(icon).snippet(vacant);
-            mMap.addMarker(options);
+            mMarkerList.add(mMap.addMarker(options));
         }
         mMap.setOnInfoWindowClickListener(this);
         mMap.setOnMarkerClickListener(new OnMarkerClickListener() {
@@ -351,7 +353,8 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                 for (int index = 0; index < mListView.getCount(); index++) {
                     if (marker.getTitle().equals(
                             ((MyCustomListAdapter) mListView.getAdapter()).getHotelName(index))) {
-                        ((MyCustomListAdapter) mListView.getAdapter()).setSelectedItemPosition(index);
+                        ((MyCustomListAdapter) mListView.getAdapter())
+                                .setSelectedItemPosition(index);
                         makeList();
                         mListView.setSelection(index);
                     }
@@ -437,6 +440,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
 
     public void searchHotel() {
         mMap.clear();
+        mMarkerList = new ArrayList<Marker>();
         // 現在地周辺のホテルを検索する。
         // TODO 以下はテスト用コード（リリース前に削除すること）
         // mRakutenClient.setmMyLatitute(mLocationSource.getMyLocation().getLatitude());
@@ -518,7 +522,25 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                final String targetHotelName = mTargetList.get(position).getName();
+                for (int index = 0; index < mTargetList.size(); index++) {
+                    if (mMarkerList.get(index).getTitle().equals(targetHotelName)) {
+                        double lat = mMarkerList.get(index).getPosition().latitude;
+                        double lon = mMarkerList.get(index).getPosition().longitude;
+                        CameraPosition.Builder builder = new CameraPosition.Builder().bearing(0).tilt(0)
+                                .zoom(16).target(new LatLng(lat, lon));
+                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
+                        mMarkerList.get(index).showInfoWindow();
+                    }
+                }
+            }
+        });
+
+        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 
                 final int iTargetListIndex = arg2;
                 final CharSequence[] items = {
@@ -583,6 +605,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                 });
 
                 dialog.show();
+                return true;
             }
         });
 
