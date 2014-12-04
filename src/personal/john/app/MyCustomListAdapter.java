@@ -7,16 +7,21 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView.FindListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class MyCustomListAdapter extends ArrayAdapter<MyCustomListData> {
     private static LayoutInflater layoutInflater;
+    private static int selectedPosition = -1;
+    private static Context context;
 
     public MyCustomListAdapter(Context context, int viewResourceId, List<MyCustomListData> objects) {
         super(context, viewResourceId, objects);
         layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        this.context = context;
     }
 
     @Override
@@ -51,6 +56,24 @@ public class MyCustomListAdapter extends ArrayAdapter<MyCustomListData> {
         TextView listMinChargeTextView = (TextView) cv.findViewById(R.id.listHotelMinCharge);
         listMinChargeTextView.setText(item.getHotelMinCharge());
         
+        if (selectedPosition > -1) {
+            if (position == selectedPosition) {
+                cv.setBackgroundColor(context.getResources().getColor(R.color.purple));
+            } else {
+                cv.setBackgroundColor(context.getResources().getColor(R.color.white));
+            }
+        }
         return cv;
+    }
+    
+    public String getHotelName(int position) {
+        // 特定の行(position)のデータを得る
+        MyCustomListData item = getItem(position);
+        return item.getHotelName();
+        
+    }
+    
+    public void setSelectedItemPosition(int position) {
+        selectedPosition = position;
     }
 }

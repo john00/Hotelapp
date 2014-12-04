@@ -12,6 +12,7 @@ import org.xml.sax.SAXException;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -23,6 +24,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -40,6 +42,8 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         RakutenClientReceiver {
 
     private static GoogleMap mMap;
+    
+    private static ArrayList<Marker> mMarkerList;
 
     private static ListView mListView;
 
@@ -80,6 +84,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         mDatabaseObject = new GeoSearcherDB(this);
 
         mTargetList = null;
+        mMarkerList = new ArrayList<Marker>();
 
     }
 
@@ -121,8 +126,11 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                     loc = lm.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
                 }
                 if (loc != null) {
-                    lat = loc.getLatitude();
-                    lon = loc.getLongitude();
+                    // TODO 以下はテスト用コード（リリース前に削除すること）
+                    // lat = loc.getLatitude();
+                    // lon = loc.getLongitude();
+                    lat = 35.681283;
+                    lon = 139.766092;
                 }
                 CameraPosition.Builder builder = new CameraPosition.Builder().bearing(0).tilt(0)
                         .zoom(16).target(new LatLng(lat, lon));
@@ -179,25 +187,23 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                                     case 0:
                                         Collections.sort(mTargetList, new MyComparator(
                                                 MyComparator.ASC, MyComparator.MODE_HOTELNAME));
-                                        makeList();
                                         break;
                                     case 1:
                                         Collections.sort(mTargetList, new MyComparator(
                                                 MyComparator.ASC, MyComparator.MODE_DISTANCE));
-                                        makeList();
                                         break;
                                     case 2:
                                         Collections.sort(mTargetList, new MyComparator(
                                                 MyComparator.ASC, MyComparator.MODE_MINCHARGE));
-                                        makeList();
                                         break;
                                     case 3:
                                         Collections.sort(mTargetList, new MyComparator(
                                                 MyComparator.ASC, MyComparator.MODE_VACANT));
-                                        makeList();
                                         break;
                                     default:
                                 }
+                                makeList();
+                                updateMarker();
                             }
                         }).setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
@@ -297,15 +303,14 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
 
         int size = mTargetList.size();
         mMap.clear();
+        mMarkerList = new ArrayList<Marker>();
 
         for (int iHotel = 0; iHotel < size; iHotel++) {
-            int iArrived = 0;
             BitmapDescriptor icon;
             MarkerOptions options = new MarkerOptions();
 
             if (mTargetList.get(iHotel).getNo() != "") {
                 mDatabaseObject.openGeoSearcherDB();
-                iArrived = mDatabaseObject.readArrivedData(mTargetList.get(iHotel).getNo());
                 mDatabaseObject.closeGeoSearcherDB();
             }
 
@@ -314,15 +319,19 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
             mTargetList.get(iHotel).setDistance(mRakutenClient.getmMyLatitute(),
                     mRakutenClient.getmMyLongitude(), destLat, destLon);
 
-            if (iArrived == 1) {
-                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
-            } else {
-                if (mTargetList.get(iHotel).getDistance() > 1000) {
-                    icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
-                } else {
-                    icon = BitmapDescriptorFactory
-                            .defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
-                }
+            switch (iHotel) {
+                case 0:
+                    icon = BitmapDescriptorFactory.fromResource(R.drawable.marker_a);
+                    break;
+                case 1:
+                    icon = BitmapDescriptorFactory.fromResource(R.drawable.marker_b);
+                    break;
+                case 2:
+                    icon = BitmapDescriptorFactory.fromResource(R.drawable.marker_c);
+                    break;
+                default:
+                    icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+                    break;
             }
 
             LatLng latlng = new LatLng(destLat, destLon);
@@ -333,9 +342,26 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                 vacant = "空き部屋あり";
             }
             options.position(latlng).title(title).icon(icon).snippet(vacant);
-            mMap.addMarker(options);
+            mMarkerList.add(mMap.addMarker(options));
         }
         mMap.setOnInfoWindowClickListener(this);
+        mMap.setOnMarkerClickListener(new OnMarkerClickListener() {
+
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                // TODO 自動生成されたメソッド・スタブ
+                for (int index = 0; index < mListView.getCount(); index++) {
+                    if (marker.getTitle().equals(
+                            ((MyCustomListAdapter) mListView.getAdapter()).getHotelName(index))) {
+                        ((MyCustomListAdapter) mListView.getAdapter())
+                                .setSelectedItemPosition(index);
+                        makeList();
+                        mListView.setSelection(index);
+                    }
+                }
+                return false;
+            }
+        });
     }
 
     @Override
@@ -414,9 +440,15 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
 
     public void searchHotel() {
         mMap.clear();
+        mMarkerList = new ArrayList<Marker>();
         // 現在地周辺のホテルを検索する。
-        mRakutenClient.setmMyLatitute(mLocationSource.getMyLocation().getLatitude());
-        mRakutenClient.setmMyLongitude(mLocationSource.getMyLocation().getLongitude());
+        // TODO 以下はテスト用コード（リリース前に削除すること）
+        // mRakutenClient.setmMyLatitute(mLocationSource.getMyLocation().getLatitude());
+        // mRakutenClient.setmMyLongitude(mLocationSource.getMyLocation().getLongitude());
+        double lat = 35.681283;
+        double lon = 139.766092;
+        mRakutenClient.setmMyLatitute(lat);
+        mRakutenClient.setmMyLongitude(lon);
         mRakutenClient.queryInfo(getString(R.string.flag_mode_normal), "");
     }
 
@@ -465,6 +497,23 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                     + "m");
             tmpItem.setHotelMinCharge("価格：" + mTargetList.get(iTargetCount).getHotelMinCharge()
                     + "円 ～");
+
+            switch (iTargetCount) {
+                case 0:
+                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(),
+                            R.drawable.marker_a));
+                    break;
+                case 1:
+                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(),
+                            R.drawable.marker_b));
+                    break;
+                case 2:
+                    tmpItem.setHotelImage(BitmapFactory.decodeResource(getResources(),
+                            R.drawable.marker_c));
+                    break;
+                default:
+                    break;
+            }
             object.add(tmpItem);
         }
 
@@ -473,7 +522,25 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                final String targetHotelName = mTargetList.get(position).getName();
+                for (int index = 0; index < mTargetList.size(); index++) {
+                    if (mMarkerList.get(index).getTitle().equals(targetHotelName)) {
+                        double lat = mMarkerList.get(index).getPosition().latitude;
+                        double lon = mMarkerList.get(index).getPosition().longitude;
+                        CameraPosition.Builder builder = new CameraPosition.Builder().bearing(0).tilt(0)
+                                .zoom(16).target(new LatLng(lat, lon));
+                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
+                        mMarkerList.get(index).showInfoWindow();
+                    }
+                }
+            }
+        });
+
+        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 
                 final int iTargetListIndex = arg2;
                 final CharSequence[] items = {
@@ -538,6 +605,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                 });
 
                 dialog.show();
+                return true;
             }
         });
 
