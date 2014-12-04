@@ -131,6 +131,9 @@ public class MainActivity extends FragmentActivity implements LocationListener,
         } else {
             Toast.makeText(this, getString(R.string.message_gps), Toast.LENGTH_SHORT).show();
         }
+        
+        searchHotel();
+        
     }
 
     @Override
