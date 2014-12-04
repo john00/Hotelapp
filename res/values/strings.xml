@@ -28,6 +28,8 @@
     <string name="menuitem_rakutenpage">楽天Webページを開く</string>
     <string name="menuitem_close">閉じる</string>
     <string name="makelist_failed">リスト作成に失敗しました。マップに戻ります。</string>
+    <string name="no_searche">検索結果なし</string>
+    <string name="no_searche_detail">近場にホテルがありません。検索範囲を広げるか、移動して再度検索を行ってください。</string>
     
     <string name="flag_mode_normal">Normal</string>
     <string name="flag_mode_vacant">Vacant</string>
