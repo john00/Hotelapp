@@ -127,10 +127,10 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                 }
                 if (loc != null) {
                     // TODO 以下はテスト用コード（リリース前に削除すること）
-                    // lat = loc.getLatitude();
-                    // lon = loc.getLongitude();
-                    lat = 35.681283;
-                    lon = 139.766092;
+                     lat = loc.getLatitude();
+                     lon = loc.getLongitude();
+                    //lat = 35.681283;
+                    //lon = 139.766092;
                 }
                 CameraPosition.Builder builder = new CameraPosition.Builder().bearing(0).tilt(0)
                         .zoom(16).target(new LatLng(lat, lon));
@@ -349,7 +349,6 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
 
             @Override
             public boolean onMarkerClick(Marker marker) {
-                // TODO 自動生成されたメソッド・スタブ
                 for (int index = 0; index < mListView.getCount(); index++) {
                     if (marker.getTitle().equals(
                             ((MyCustomListAdapter) mListView.getAdapter()).getHotelName(index))) {
@@ -369,11 +368,11 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
         // ホテルの住所からmTargetListのインデックスを検索
         int index;
         for (index = 0; index < mTargetList.size(); index++) {
-            if (marker.getSnippet().equals(mTargetList.get(index).getAddress()))
+            if (marker.getTitle().equals(mTargetList.get(index).getName()))
                 break;
         }
 
-        final int iTargetListIndex = index;
+        final int targetListIndex = index;
         final CharSequence[] items = {
                 getString(R.string.menuitem_reservedwithphone),
                 getString(R.string.menuitem_showroute), getString(R.string.menuitem_memo),
@@ -389,7 +388,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                 switch (which) {
                     case 0: // 電話
                         String strTelphoneNo = "tel:"
-                                + mTargetList.get(iTargetListIndex).getTelephoneNo();
+                                + mTargetList.get(targetListIndex).getTelephoneNo();
                         Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse(strTelphoneNo));
                         startActivity(intent);
                         break;
@@ -397,8 +396,8 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                         String strRouteUrl = "http://maps.google.com/maps?dirflg=w";
                         strRouteUrl += "&saddr=" + mMap.getMyLocation().getLatitude() + ","
                                 + mMap.getMyLocation().getLongitude() + "(現在地)";
-                        strRouteUrl += "&daddr=" + mTargetList.get(iTargetListIndex).getLatitude()
-                                + "," + mTargetList.get(iTargetListIndex).getLongitude() + "(目的地)";
+                        strRouteUrl += "&daddr=" + mTargetList.get(targetListIndex).getLatitude()
+                                + "," + mTargetList.get(targetListIndex).getLongitude() + "(目的地)";
 
                         Intent intentRote = new Intent();
                         intentRote.setAction(Intent.ACTION_VIEW);
@@ -409,9 +408,9 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                         break;
                     case 2: // メモ
                         String[] strInfo = {
-                                mTargetList.get(iTargetListIndex).getNo(), "0", ""
+                                mTargetList.get(targetListIndex).getNo(), "0", ""
                         };
-                        String strHotelId = mTargetList.get(iTargetListIndex).getNo();
+                        String strHotelId = mTargetList.get(targetListIndex).getNo();
                         mDatabaseObject.openGeoSearcherDB();
                         if (mDatabaseObject.readArrivedData(strHotelId) != 0)
                             strInfo[1] = "1";
@@ -426,7 +425,7 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                         break;
                     case 3: // 楽天Webページを開く
                         final Intent intentWeb = new Intent(Intent.ACTION_VIEW, Uri
-                                .parse(mTargetList.get(iTargetListIndex).getInfomationUrl()));
+                                .parse(mTargetList.get(targetListIndex).getInfomationUrl()));
                         startActivity(intentWeb);
                     default:
                 }
