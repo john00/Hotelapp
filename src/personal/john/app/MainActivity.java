@@ -533,6 +533,9 @@ public class MainActivity extends FragmentActivity implements OnInfoWindowClickL
                         mMarkerList.get(index).showInfoWindow();
                     }
                 }
+                ((MyCustomListAdapter) mListView.getAdapter()).setSelectedItemPosition(position);
+                makeList();
+                mListView.setSelection(position);
             }
         });
 
