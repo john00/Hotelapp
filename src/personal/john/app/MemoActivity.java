@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 
-public class MemoWindow extends Activity implements OnClickListener {
+public class MemoActivity extends Activity implements OnClickListener {
     // 画面オブジェクト
     private CheckBox mChkboxArrived;
 
